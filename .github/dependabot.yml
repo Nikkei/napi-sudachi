@@ -1,0 +1,94 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    open-pull-requests-limit: 0
+    schedule:
+      interval: monthly
+    groups:
+      napi-rs:
+        patterns:
+          - '@napi-rs/*'
+          - '@napi/cli'
+          - napi
+          - napi-build
+          - napi-derive
+      linter:
+        patterns:
+          - 'eslint*'
+          - '@typescript-eslint/*'
+      production-dependencies:
+        dependency-type: 'production'
+        patterns:
+          - '*'
+        exclude-patterns:
+          - '@napi-rs/*'
+          - '@napi/cli'
+          - napi
+          - napi-build
+          - napi-derive
+          - 'eslint*'
+          - '@typescript-eslint/*'
+        update-types:
+          - minor
+          - patch
+      development-dependencies:
+        dependency-type: 'development'
+        patterns:
+          - '*'
+        exclude-patterns:
+          - '@napi-rs/*'
+          - '@napi/cli'
+          - napi
+          - napi-build
+          - napi-derive
+          - 'eslint*'
+          - '@typescript-eslint/*'
+        update-types:
+          - minor
+          - patch
+
+    cooldown:
+      default-days: 14
+      exclude:
+        - 'actions/*'
+        - 'github/*'
+
+  - package-ecosystem: cargo
+    directory: /
+    open-pull-requests-limit: 0
+    schedule:
+      interval: monthly
+    groups:
+      napi-rs:
+        patterns:
+          - napi
+          - napi-derive
+          - napi-build
+      cargo:
+        patterns:
+          - '*'
+        exclude-patterns:
+          - napi
+          - napi-derive
+          - napi-build
+        update-types:
+          - minor
+          - patch
+    cooldown:
+      default-days: 14
+
+  - package-ecosystem: github-actions
+    directory: /
+    open-pull-requests-limit: 0
+    schedule:
+      interval: monthly
+    groups:
+      github-actions:
+        patterns:
+          - '*'
+    cooldown:
+      default-days: 14
+      exclude:
+        - 'actions/*'
+        - 'github/*'
