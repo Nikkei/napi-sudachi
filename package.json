@@ -1,6 +1,6 @@
 {
   "name": "@nikkei/napi-sudachi",
-  "version": "0.11.5",
+  "version": "0.12.0",
   "description": "Sudachi.rs for Node.js with napi-rs",
   "main": "wrapper.js",
   "repository": {
