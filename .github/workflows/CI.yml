@@ -245,7 +245,7 @@ jobs:
           options: '-v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }} --platform ${{ steps.docker.outputs.PLATFORM }}'
           run: yarn test
   publish:
-    # Need OIDC setup on npmjs.com
+    # publish with Trusted Publisher (OIDC) on npmjs.com
     name: Publish
     runs-on: ubuntu-latest
     permissions:
@@ -263,12 +263,10 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v6
         with:
-          node-version: '22.14'
-          cache: yarn
+          node-version: '24'
           registry-url: https://registry.npmjs.org/
           scope: '@nikkei'
-      - name: Use npm with trusted publishing support
-        run: npm install -g npm@^11.5.1 && npm --version
+          package-manager-cache: false
       - name: Install dependencies
         run: yarn install
       - name: create npm dirs
@@ -286,6 +284,7 @@ jobs:
         if: github.event_name == 'pull_request'
         id: dry-run
         run: |
+          unset NODE_AUTH_TOKEN
           npm publish --dry-run > dry-run-output.txt 2>&1 || true
           if [ -s dry-run-output.txt ]; then
             echo "DRY_RUN_OUTPUT<<EOF" >> $GITHUB_OUTPUT
@@ -298,6 +297,7 @@ jobs:
       - name: Publish to npm registry
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
+          unset NODE_AUTH_TOKEN
           TAG="${GITHUB_REF_NAME#v}"
 
           PKG_VERSION=$(node -p "require('./package.json').version")
