@@ -245,7 +245,10 @@ jobs:
           options: '-v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }} --platform ${{ steps.docker.outputs.PLATFORM }}'
           run: yarn test
   publish:
-    # Need OIDC setup on npmjs.com
+    # Trusted Publisher (OIDC): on npmjs.com, register each @nikkei/napi-sudachi* package with
+    #   Organization: Nikkei, Repository: napi-sudachi, Workflow: CI.yml
+    # Requires Node >= 22.14.0 and npm >= 11.5.1 (Node 24 includes a compatible npm).
+    # See https://docs.npmjs.com/trusted-publishers
     name: Publish
     runs-on: ubuntu-latest
     permissions:
@@ -263,12 +266,28 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v6
         with:
-          node-version: '22.14'
-          cache: yarn
+          node-version: '24'
           registry-url: https://registry.npmjs.org/
           scope: '@nikkei'
-      - name: Use npm with trusted publishing support
-        run: npm install -g npm@^11.5.1 && npm --version
+          package-manager-cache: false
+      - name: Verify Node and npm versions for trusted publishing
+        run: |
+          node --version
+          npm --version
+          node -e "
+            const [maj, min] = process.versions.node.split('.').map(Number)
+            if (maj < 22 || (maj === 22 && min < 14)) {
+              console.error('Node >= 22.14.0 is required for npm trusted publishing')
+              process.exit(1)
+            }
+          "
+          node -e "
+            const [maj, min, patch] = process.argv[1].split('.').map(Number)
+            if (maj < 11 || (maj === 11 && min < 5) || (maj === 11 && min === 5 && patch < 1)) {
+              console.error('npm >= 11.5.1 is required for trusted publishing')
+              process.exit(1)
+            }
+          " "$(npm --version)"
       - name: Install dependencies
         run: yarn install
       - name: create npm dirs
@@ -286,6 +305,7 @@ jobs:
         if: github.event_name == 'pull_request'
         id: dry-run
         run: |
+          unset NODE_AUTH_TOKEN
           npm publish --dry-run > dry-run-output.txt 2>&1 || true
           if [ -s dry-run-output.txt ]; then
             echo "DRY_RUN_OUTPUT<<EOF" >> $GITHUB_OUTPUT
@@ -298,6 +318,7 @@ jobs:
       - name: Publish to npm registry
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
+          unset NODE_AUTH_TOKEN
           TAG="${GITHUB_REF_NAME#v}"
 
           PKG_VERSION=$(node -p "require('./package.json').version")
