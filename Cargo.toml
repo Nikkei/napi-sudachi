@@ -13,7 +13,7 @@ napi-derive = "3.0.0"
 
   [dependencies.sudachi]
   git = "https://github.com/WorksApplications/sudachi.rs.git"
-  tag = "v0.6.11"
+  tag = "v0.7.0"
 
 [build-dependencies]
 napi-build = "2"
